@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Brightside Health</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --teal-light: #e2c8f0; --teal-mid: #9c5ecf; --teal-cta: #a72dd4;
+      --navy: #6e1e66; --navy-mid: #742d8e; --navy-soft: #7f4aa5;
+      --white: #ffffff; --off-white: #f4fbfb;
+      --text-body: #443751; --text-muted: #6b7280;
+      --radius-pill: 9999px; --radius-lg: 1rem;
+      --shadow-card: 0 8px 32px rgba(30,58,110,.10);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; color: var(--text-body); background: var(--white); overflow-x: hidden; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 3rem; height: 68px;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(94,207,201,.18);
+    }
+    .nav-left { display: flex; gap: 2rem; align-items: center; }
+    .nav-left a, .nav-right a { font-size: .88rem; font-weight: 500; color: var(--navy); text-decoration: none; transition: color .2s; }
+    .nav-left a:hover, .nav-right a:hover { color: var(--teal-mid); }
+    .logo {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: .45rem;
+      font-family: 'DM Serif Display', serif; font-size: 1.35rem; color: var(--navy); text-decoration: none;
+    }
+    .logo-star {
+      width: 26px; height: 26px;
+      background: conic-gradient(var(--teal-mid) 0deg 60deg, transparent 60deg 120deg, var(--teal-mid) 120deg 180deg, transparent 180deg 240deg, var(--teal-mid) 240deg 300deg, transparent 300deg);
+      border-radius: 50%; animation: spin 8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .btn-cta {
+      background: var(--teal-cta); color: var(--navy) !important; font-weight: 600 !important;
+      padding: .55rem 1.35rem; border-radius: var(--radius-pill);
+      transition: transform .2s, box-shadow .2s; cursor: pointer; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: .88rem;
+    }
+    .btn-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,45,212,.4); }
+    .btn-outline {
+      background: transparent; color: var(--navy) !important; font-weight: 500 !important;
+      padding: .5rem 1.2rem; border-radius: var(--radius-pill);
+      border: 1.5px solid var(--navy); cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: .88rem; transition: all .2s;
+    }
+    .btn-outline:hover { background: var(--navy); color: #fff !important; }
+
+    /* USER AVATAR IN NAV */
+    .nav-user { display: flex; align-items: center; gap: .75rem; cursor: pointer; position: relative; }
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: var(--navy); font-size: .85rem;
+    }
+    .user-name { font-size: .88rem; font-weight: 500; color: var(--navy); }
+    .user-dropdown {
+      position: absolute; top: calc(100% + 12px); right: 0;
+      background: #fff; border-radius: var(--radius-lg); padding: .5rem;
+      box-shadow: 0 8px 32px rgba(30,58,110,.15);
+      border: 1px solid rgba(94,207,201,.2);
+      min-width: 200px; display: none; z-index: 200;
+    }
+    .user-dropdown.open { display: block; }
+    .dropdown-item {
+      display: block; padding: .6rem 1rem; font-size: .88rem; color: var(--text-body);
+      text-decoration: none; border-radius: .5rem; cursor: pointer; transition: background .15s;
+    }
+    .dropdown-item:hover { background: var(--off-white); }
+    .dropdown-item.danger { color: #dc2626; }
+    .dropdown-divider { height: 1px; background: rgba(94,207,201,.2); margin: .3rem 0; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(70,20,80,.45); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #fff; border-radius: 1.5rem; padding: 2.5rem;
+      width: 100%; max-width: 440px;
+      box-shadow: 0 24px 80px rgba(30,58,110,.22);
+      transform: translateY(16px); transition: transform .3s; position: relative;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      background: none; border: none; cursor: pointer;
+      font-size: 1.4rem; color: var(--text-muted); line-height: 1; padding: 4px;
+    }
+    .modal-logo {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--navy);
+      margin-bottom: 1.5rem;
+    }
+    .modal-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--navy); margin-bottom: .4rem; text-align: center; }
+    .modal-sub { font-size: .88rem; color: var(--text-muted); text-align: center; margin-bottom: 1.8rem; }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label { display: block; font-size: .83rem; font-weight: 600; color: var(--navy); margin-bottom: .4rem; }
+    .form-input {
+      width: 100%; padding: .75rem 1rem;
+      border: 1.5px solid rgba(30,58,110,.18);
+      border-radius: .75rem; font-family: 'DM Sans', sans-serif;
+      font-size: .93rem; color: var(--text-body);
+      outline: none; transition: border-color .2s;
+    }
+    .form-input:focus { border-color: var(--teal-mid); }
+    .form-input.error { border-color: #dc2626; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .btn-submit {
+      width: 100%; padding: .85rem; border: none; border-radius: var(--radius-pill);
+      background: var(--navy); color: #fff; font-family: 'DM Sans', sans-serif;
+      font-size: .95rem; font-weight: 600; cursor: pointer;
+      transition: background .2s, transform .2s; margin-top: .5rem;
+    }
+    .btn-submit:hover { background: var(--navy-mid); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .modal-switch { text-align: center; margin-top: 1.2rem; font-size: .85rem; color: var(--text-muted); }
+    .modal-switch a { color: var(--teal-mid); font-weight: 600; cursor: pointer; text-decoration: none; }
+    .error-msg { font-size: .78rem; color: #dc2626; margin-top: .3rem; min-height: 1rem; }
+    .strength-bar { display: flex; gap: 4px; margin-top: .4rem; }
+    .strength-seg { flex: 1; height: 4px; border-radius: 2px; background: #e5e7eb; transition: background .3s; }
+    .strength-seg.weak { background: #ef4444; }
+    .strength-seg.fair { background: #f59e0b; }
+    .strength-seg.good { background: #10b981; }
+    .strength-seg.strong { background: #059669; }
+    .strength-label { font-size: .75rem; color: var(--text-muted); margin-top: .25rem; height: 1rem; }
+    .checkbox-row { display: flex; align-items: flex-start; gap: .6rem; margin-top: .5rem; }
+    .checkbox-row input { margin-top: 3px; accent-color: var(--teal-mid); }
+    .checkbox-row label { font-size: .82rem; color: var(--text-muted); line-height: 1.5; }
+    .divider-row { display: flex; align-items: center; gap: .75rem; margin: 1.2rem 0; }
+    .divider-line { flex: 1; height: 1px; background: rgba(30,58,110,.12); }
+    .divider-text { font-size: .78rem; color: var(--text-muted); }
+    .btn-google {
+      width: 100%; padding: .75rem; border: 1.5px solid rgba(30,58,110,.18);
+      border-radius: var(--radius-pill); background: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: .93rem; font-weight: 500;
+      color: var(--text-body); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: .6rem; transition: border-color .2s, background .2s;
+    }
+    .btn-google:hover { border-color: var(--teal-mid); background: var(--off-white); }
+    .google-icon { width: 18px; height: 18px; }
+
+    /* HERO */
+    .hero {
+      min-height: calc(100vh - 68px);
+      background: linear-gradient(130deg, #dfb2ed 0%, #e7cef5 40%, #e0f9f7 70%, #f0fdfb 100%);
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center; padding: 4rem 3rem; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 70% 50%, rgba(255,255,255,.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-content { position: relative; z-index: 2; }
+    .hero-eyebrow { font-size: .78rem; font-weight: 600; letter-spacing: .14em; color: var(--navy-soft); text-transform: uppercase; margin-bottom: 1rem; }
+    .hero-h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2.4rem,4vw,3.4rem); line-height: 1.1; color: var(--navy); margin-bottom: .4rem; }
+    .hero-h1-sub { font-family: 'DM Serif Display', serif; font-size: clamp(2rem,3.5vw,3rem); line-height: 1.2; color: var(--navy-soft); margin-bottom: 1.8rem; }
+    .hero-checklist { list-style: none; display: flex; flex-direction: column; gap: .65rem; margin-bottom: 2.5rem; }
+    .hero-checklist li { display: flex; align-items: center; gap: .65rem; font-size: .95rem; color: var(--navy); }
+    .check-icon { width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; background: var(--teal-mid); display: flex; align-items: center; justify-content: center; }
+    .check-icon::after { content: '✓'; color: #fff; font-size: .68rem; font-weight: 700; }
+    .hero-form-label { font-weight: 600; font-size: .95rem; color: var(--navy); margin-bottom: .8rem; }
+    .hero-form { display: flex; gap: .75rem; align-items: center; }
+    .hero-select {
+      flex: 1; padding: .85rem 1.1rem; border: 1.5px solid rgba(30,58,110,.15);
+      border-radius: var(--radius-pill); background: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--text-muted);
+      appearance: none; cursor: pointer; outline: none; transition: border-color .2s;
+    }
+    .hero-select:focus { border-color: var(--teal-mid); }
+    .btn-go {
+      background: var(--navy); color: #fff; border: none; padding: .85rem 2rem;
+      border-radius: var(--radius-pill); font-family: 'DM Sans', sans-serif;
+      font-size: .95rem; font-weight: 600; cursor: pointer; transition: background .2s, transform .2s;
+    }
+    .btn-go:hover { background: var(--navy-mid); transform: translateY(-1px); }
+    .hero-image { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
+    .hero-img-placeholder {
+      width: 100%; max-width: 520px; aspect-ratio: 3/4;
+      border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%;
+      background: linear-gradient(145deg, #a8ddd9 0%, #d4f1ee 50%, #e8faf8 100%);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(30,58,110,.12);
+    }
+    .hero-img-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* TRUST BAR */
+    .trust-bar { background: var(--navy); padding: 1.4rem 3rem; display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap; }
+    .trust-item { display: flex; align-items: center; gap: .6rem; color: rgba(255,255,255,.85); font-size: .85rem; }
+    .trust-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal-cta); }
+
+    /* HOW IT WORKS */
+    .how { background: var(--off-white); display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; padding: 5rem 3rem; }
+    .steps { display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem; }
+    .step { display: flex; gap: 1.2rem; align-items: flex-start; }
+    .step-num { width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; background: var(--teal-mid); color: #fff; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    .step-text h4 { font-weight: 600; color: var(--navy); margin-bottom: .3rem; }
+    .step-text p { font-size: .9rem; color: var(--text-muted); line-height: 1.6; }
+    .how-visual { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .how-card { background: #fff; border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-card); transition: transform .25s; }
+    .how-card:hover { transform: translateY(-4px); }
+    .how-card:nth-child(2) { margin-top: 1.5rem; }
+    .how-card:nth-child(4) { margin-top: -1.5rem; }
+    .card-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--teal-light), var(--teal-mid)); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.3rem; }
+    .how-card h5 { font-weight: 600; color: var(--navy); margin-bottom: .4rem; font-size: .95rem; }
+    .how-card p { font-size: .82rem; color: var(--text-muted); line-height: 1.55; }
+
+    /* CONDITIONS */
+    .conditions { text-align: center; padding: 5rem 3rem; }
+    .conditions .section-body { margin: 0 auto 3rem; }
+    .cond-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1.25rem; }
+    .cond-card { background: linear-gradient(135deg, var(--off-white), #f1e8f9); border: 1.5px solid rgba(94,207,201,.25); border-radius: var(--radius-lg); padding: 1.6rem 1.2rem; text-align: left; cursor: pointer; transition: border-color .2s, transform .25s, box-shadow .25s; }
+    .cond-card:hover { border-color: var(--teal-mid); transform: translateY(-4px); box-shadow: var(--shadow-card); }
+    .cond-emoji { font-size: 1.6rem; margin-bottom: .7rem; }
+    .cond-card h4 { font-weight: 600; color: var(--navy); margin-bottom: .3rem; font-size: .95rem; }
+    .cond-card p { font-size: .82rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* STATS */
+    .stats { background: linear-gradient(135deg, var(--navy) 0%, #163160 100%); display: grid; grid-template-columns: repeat(3,1fr); gap: 2rem; text-align: center; padding: 5rem 3rem; }
+    .stat-val { font-family: 'DM Serif Display', serif; font-size: 3rem; color: var(--teal-cta); line-height: 1; margin-bottom: .4rem; }
+    .stat-label { font-size: .9rem; color: rgba(255,255,255,.7); line-height: 1.4; }
+
+    /* TESTIMONIALS */
+    .testimonials { background: var(--off-white); padding: 5rem 3rem; }
+    .testi-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1.5rem; margin-top: 3rem; }
+    .testi-card { background: #fff; border-radius: var(--radius-lg); padding: 1.8rem; box-shadow: var(--shadow-card); }
+    .stars { color: #880bf5; font-size: 1rem; margin-bottom: 1rem; }
+    .testi-quote { font-size: .93rem; line-height: 1.7; color: var(--text-body); margin-bottom: 1.2rem; font-style: italic; }
+    .testi-author { display: flex; align-items: center; gap: .75rem; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-light), var(--teal-mid)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--navy); font-size: .95rem; }
+    .author-info strong { display: block; font-size: .88rem; color: var(--navy); }
+    .author-info span { font-size: .78rem; color: var(--text-muted); }
+
+    /* CTA BAND */
+    .cta-band { background: linear-gradient(130deg, #dbb2ed, #e4cef5 60%, #d4f9f6); text-align: center; padding: 5rem 3rem; }
+    .btn-primary { display: inline-block; background: var(--navy); color: #fff; padding: .9rem 2.5rem; border-radius: var(--radius-pill); font-weight: 600; font-size: 1rem; text-decoration: none; transition: background .2s, transform .2s; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+    .btn-primary:hover { background: var(--navy-mid); transform: translateY(-2px); }
+
+    /* SECTION SHARED */
+    .section-tag { font-size: .76rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--teal-mid); margin-bottom: .75rem; }
+    .section-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem,3vw,2.6rem); color: var(--navy); line-height: 1.2; margin-bottom: 1rem; }
+    .section-body { font-size: 1rem; line-height: 1.7; color: var(--text-muted); max-width: 560px; }
+
+    /* FOOTER */
+    footer { background: var(--navy); color: rgba(255,255,255,.65); padding: 3.5rem 3rem 2rem; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2.5rem; margin-bottom: 3rem; }
+    .footer-logo { font-family: 'DM Serif Display', serif; font-size: 1.25rem; color: #fff; margin-bottom: .85rem; }
+    .footer-desc { font-size: .85rem; line-height: 1.65; }
+    .footer-col h5 { font-size: .82rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--teal-cta); margin-bottom: 1rem; }
+    .footer-col a { display: block; font-size: .85rem; color: rgba(255,255,255,.65); text-decoration: none; margin-bottom: .5rem; transition: color .2s; }
+    .footer-col a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-bottom p { font-size: .8rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: .8rem; color: rgba(255,255,255,.5); text-decoration: none; }
+    .footer-links a:hover { color: #fff; }
+
+    /* DASHBOARD */
+    .dashboard-section { min-height: calc(100vh - 68px); background: linear-gradient(130deg, #dfb2ed 0%, #e7cef5 40%, #e0f9f7 70%, #f0fdfb 100%); padding: 3rem; }
+    .dash-welcome { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--navy); margin-bottom: .4rem; }
+    .dash-sub { color: var(--navy-soft); font-size: .95rem; margin-bottom: 2.5rem; }
+    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+    .dash-card { background: #fff; border-radius: var(--radius-lg); padding: 1.6rem; box-shadow: var(--shadow-card); transition: transform .25s; }
+    .dash-card:hover { transform: translateY(-3px); }
+    .dash-card-icon { font-size: 1.5rem; margin-bottom: .75rem; }
+    .dash-card h4 { font-weight: 600; color: var(--navy); margin-bottom: .3rem; font-size: .95rem; }
+    .dash-card p { font-size: .83rem; color: var(--text-muted); line-height: 1.55; }
+    .dash-card .card-action { display: inline-block; margin-top: .85rem; font-size: .82rem; font-weight: 600; color: var(--teal-mid); cursor: pointer; }
+    .profile-card { background: #fff; border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-card); display: flex; gap: 1.5rem; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; }
+    .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-light), var(--teal-mid)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--navy); font-size: 1.6rem; flex-shrink: 0; }
+    .profile-info h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--navy); margin-bottom: .2rem; }
+    .profile-info p { font-size: .88rem; color: var(--text-muted); }
+    .profile-badge { margin-top: .5rem; display: inline-flex; align-items: center; gap: .4rem; background: #f0fdf4; color: #16a34a; border-radius: var(--radius-pill); padding: .2rem .75rem; font-size: .78rem; font-weight: 600; }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy); color: #fff; padding: .75rem 1.5rem; border-radius: var(--radius-pill); font-size: .88rem; font-weight: 500; opacity: 0; transition: all .3s; z-index: 1000; white-space: nowrap; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { background: #16a34a; }
+    .toast.error-toast { background: #dc2626; }
+
+    /* LOADING SPINNER */
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: .5rem; }
+
+    .help-btn { position: fixed; bottom: 2rem; right: 2rem; z-index: 200; width: 52px; height: 52px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(30,58,110,.3); cursor: pointer; border: none; transition: transform .2s; }
+    .help-btn:hover { transform: scale(1.08); }
+
+    @media (max-width: 900px) {
+      nav { padding: 0 1.5rem; }
+      .nav-left { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 3rem 1.5rem; }
+      .hero-image { order: -1; }
+      .how { grid-template-columns: 1fr; padding: 3rem 1.5rem; }
+      .stats { grid-template-columns: 1fr; padding: 3rem 1.5rem; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .dashboard-section { padding: 2rem 1.5rem; }
+      .conditions, .testimonials, .cta-band { padding: 3rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <a href="#">Getting Started</a>
+    <a href="#">Learn More</a>
+    <a href="#">For Clinicians</a>
+    <a href="#">For Partners</a>
+  </div>
+  <a href="#" class="logo">
+    <div class="logo-star"></div>
+    <span><strong>Brightside</strong> Health</span>
+  </a>
+  <div class="nav-right" id="nav-auth-area">
+    <a href="#">Refer a Patient</a>
+    <button class="btn-outline" onclick="openModal('login')">Member Login</button>
+    <button class="btn-cta" onclick="openModal('register')">Free Assessment</button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div id="main-content">
+
+  <!-- PUBLIC SITE -->
+  <div id="public-site">
+    <section class="hero">
+      <div class="hero-content">
+        <p class="hero-eyebrow">Online Mental Health Care</p>
+        <h1 class="hero-h1">It gets brighter from here.</h1>
+        <p class="hero-h1-sub">Get 1:1 help that works, and lasts.</p>
+        <ul class="hero-checklist">
+          <li><span class="check-icon"></span> Free assessment and personalized plan</li>
+          <li><span class="check-icon"></span> Appointments in as little as 24 hours</li>
+          <li><span class="check-icon"></span> Unlimited access to your provider</li>
+        </ul>
+        <p class="hero-form-label">How can we help you today?</p>
+        <div class="hero-form">
+          <select class="hero-select" id="care-select">
+            <option value="" disabled selected>I would like to…</option>
+            <option>Manage anxiety</option>
+            <option>Treat depression</option>
+            <option>Get therapy</option>
+            <option>Talk to a psychiatrist</option>
+            <option>Improve my sleep</option>
+          </select>
+          <button class="btn-go" onclick="handleGoButton()">GO</button>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="hero-img-placeholder">
+          <img src="https://placehold.co/520x693/c8f0ed/4a6fa5?text=Patient+Photo" alt="A person smiling peacefully" />
+        </div>
+      </div>
+    </section>
+
+    <div class="trust-bar">
+      <div class="trust-item"><span class="trust-dot"></span> HIPAA Compliant &amp; Secure</div>
+      <div class="trust-item"><span class="trust-dot"></span> Accepts Most Major Insurance</div>
+      <div class="trust-item"><span class="trust-dot"></span> Board-Certified Providers</div>
+      <div class="trust-item"><span class="trust-dot"></span> Available in All 50 States</div>
+    </div>
+
+    <section class="how">
+      <div>
+        <p class="section-tag">How It Works</p>
+        <h2 class="section-title">A smarter path to feeling better</h2>
+        <p class="section-body">Our evidence-based approach combines therapy, psychiatry, and ongoing support so you get the right care at every stage of your journey.</p>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text"><h4>Take a free assessment</h4><p>Answer a few questions about how you're feeling. Our clinicians review your results and design a care plan built just for you.</p></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text"><h4>Meet your provider</h4><p>Book a video or phone session within 24 hours. Choose from therapists, psychiatrists, or both — all from home.</p></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text"><h4>Stay on track, together</h4><p>Message your care team any time, track your progress, and adjust your plan as you grow.</p></div></div>
+        </div>
+      </div>
+      <div class="how-visual">
+        <div class="how-card"><div class="card-icon">🧠</div><h5>Psychiatry</h5><p>Expert medication management with board-certified psychiatrists who monitor your response.</p></div>
+        <div class="how-card"><div class="card-icon">💬</div><h5>Therapy</h5><p>Ongoing sessions with licensed therapists trained in CBT, DBT, and other proven modalities.</p></div>
+        <div class="how-card"><div class="card-icon">📱</div><h5>24/7 Messaging</h5><p>Reach your care team whenever you need support — no waiting for your next appointment.</p></div>
+        <div class="how-card"><div class="card-icon">📊</div><h5>Progress Tracking</h5><p>Visualize your symptom trends over time and share insights with your provider.</p></div>
+      </div>
+    </section>
+
+    <section class="conditions">
+      <p class="section-tag">What We Treat</p>
+      <h2 class="section-title">Care for the conditions that matter most</h2>
+      <p class="section-body">We treat a wide range of mental health conditions with personalized, clinically validated plans.</p>
+      <div class="cond-grid">
+        <div class="cond-card"><div class="cond-emoji">😔</div><h4>Depression</h4><p>Persistent low mood, loss of interest, or feelings of hopelessness — we can help.</p></div>
+        <div class="cond-card"><div class="cond-emoji">😰</div><h4>Anxiety</h4><p>Excessive worry, panic attacks, or social anxiety treated with therapy and medication.</p></div>
+        <div class="cond-card"><div class="cond-emoji">😴</div><h4>Insomnia</h4><p>Evidence-based sleep therapy and targeted support to help you rest and recover.</p></div>
+        <div class="cond-card"><div class="cond-emoji">💊</div><h4>Medication Management</h4><p>Precise prescribing and ongoing monitoring by psychiatric specialists.</p></div>
+        <div class="cond-card"><div class="cond-emoji">🔄</div><h4>OCD</h4><p>Structured ERP therapy delivered by specialists who understand the complexity of OCD.</p></div>
+        <div class="cond-card"><div class="cond-emoji">🌿</div><h4>Stress &amp; Burnout</h4><p>Practical tools and therapeutic support to restore balance and resilience.</p></div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div><div class="stat-val">93%</div><div class="stat-label">of members report improvement<br>within 12 weeks</div></div>
+      <div><div class="stat-val">24hr</div><div class="stat-label">average time to your<br>first appointment</div></div>
+      <div><div class="stat-val">4.8★</div><div class="stat-label">average member rating<br>across 50,000+ reviews</div></div>
+    </section>
+
+    <section class="testimonials">
+      <p class="section-tag">Member Stories</p>
+      <h2 class="section-title">Real people, real results</h2>
+      <div class="testi-grid">
+        <div class="testi-card"><div class="stars">★★★★★</div><p class="testi-quote">"I was skeptical about online therapy, but Brightside completely changed my perspective. My therapist is compassionate and the whole process was easy to start."</p><div class="testi-author"><div class="avatar">S</div><div class="author-info"><strong>Sarah M.</strong><span>Member since 2023 · Anxiety</span></div></div></div>
+        <div class="testi-card"><div class="stars">★★★★★</div><p class="testi-quote">"The ability to message my psychiatrist between appointments makes such a huge difference. I finally feel like I have a support system that actually shows up."</p><div class="testi-author"><div class="avatar">J</div><div class="author-info"><strong>James T.</strong><span>Member since 2022 · Depression</span></div></div></div>
+        <div class="testi-card"><div class="stars">★★★★★</div><p class="testi-quote">"Within a month I was sleeping through the night for the first time in years. The personalized plan and consistent follow-ups made all the difference."</p><div class="testi-author"><div class="avatar">A</div><div class="author-info"><strong>Amara K.</strong><span>Member since 2024 · Insomnia</span></div></div></div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <p class="section-tag">Get Started Today</p>
+      <h2 class="section-title">You deserve to feel better.</h2>
+      <p class="section-body" style="margin:0 auto 2rem;">Take your free assessment in under 5 minutes and get matched with a provider who truly understands you.</p>
+      <button class="btn-primary" onclick="openModal('register')">Take Your Free Assessment →</button>
+    </section>
+
+    <footer>
+      <div class="footer-grid">
+        <div><div class="footer-logo">✦ Brightside Health</div><p class="footer-desc">Evidence-based online mental health care combining therapy and psychiatry for lasting results. Licensed providers in all 50 states.</p></div>
+        <div class="footer-col"><h5>Company</h5><a href="#">About Us</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Blog</a></div>
+        <div class="footer-col"><h5>Care</h5><a href="#">Therapy</a><a href="#">Psychiatry</a><a href="#">Conditions</a><a href="#">Pricing</a></div>
+        <div class="footer-col"><h5>Support</h5><a href="#">Help Center</a><a href="#">For Clinicians</a><a href="#">For Partners</a><a href="#">Contact Us</a></div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Brightside Health, Inc. All rights reserved.</p>
+        <div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Accessibility</a></div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- DASHBOARD -->
+  <section class="dashboard-section" id="dashboard-section" style="display:none;">
+    <h2 class="dash-welcome" id="dash-welcome">Hello 👋</h2>
+    <p class="dash-sub">Here's your Brightside Health dashboard.</p>
+    <div class="profile-card">
+      <div class="profile-avatar" id="profile-avatar"></div>
+      <div class="profile-info">
+        <h3 id="profile-name"></h3>
+        <p id="profile-email"></p>
+        <p id="profile-joined" style="font-size:.8rem;color:var(--text-muted);margin-top:.2rem;"></p>
+        <span class="profile-badge"><span class="badge-dot"></span> Active Member</span>
+      </div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-card-icon">🧠</div>
+        <h4>Your Care Plan</h4>
+        <p id="dash-care-goal">No care goal selected yet.</p>
+        <span class="card-action" onclick="openModal('care-update')">Update goal →</span>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-icon">📅</div>
+        <h4>Next Appointment</h4>
+        <p>No upcoming appointments. Book your first session to get started.</p>
+        <span class="card-action">Book session →</span>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-icon">💬</div>
+        <h4>Messages</h4>
+        <p>Reach out to your care team any time. Providers typically respond within a few hours.</p>
+        <span class="card-action">Open messages →</span>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-icon">📊</div>
+        <h4>Progress</h4>
+        <p>Track your weekly mood and symptom check-ins to share with your provider.</p>
+        <span class="card-action">View tracker →</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-logo">
+      <div class="logo-star" style="width:22px;height:22px;"></div>
+      <span><strong>Brightside</strong> Health</span>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<button class="help-btn" title="Help">?</button>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAmfCZZLtBnqEMvwefZCVTLjon8AGy0tks",
+    authDomain: "test-c6f3a.firebaseapp.com",
+    projectId: "test-c6f3a",
+    storageBucket: "test-c6f3a.firebasestorage.app",
+    messagingSenderId: "617623383300",
+    appId: "1:617623383300:web:4fdff6ea447bc7604f7c51",
+    measurementId: "G-PF9RX8YW82"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const googleProvider = new GoogleAuthProvider();
+
+  // ── EXPOSE TO WINDOW ──────────────────────────────────
+  window._fb = { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, updateProfile, doc, setDoc, getDoc, updateDoc, serverTimestamp };
+
+  // ── AUTH STATE LISTENER ───────────────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const data = userDoc.exists() ? userDoc.data() : {};
+      renderLoggedIn({
+        uid: user.uid,
+        name: data.name || user.displayName || 'Member',
+        email: user.email,
+        care: data.care || '',
+        joined: data.joinedLabel || 'Recently'
+      });
+    } else {
+      renderLoggedOut();
+    }
+  });
+</script>
+
+<script>
+// ── TOAST ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type==='success' ? 'success' : type==='error' ? 'error-toast' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = 'toast', 3500);
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal(type) {
+  const content = document.getElementById('modal-content');
+  if (type === 'login') content.innerHTML = buildLoginForm();
+  else if (type === 'register') content.innerHTML = buildRegisterForm();
+  else if (type === 'care-update') content.innerHTML = buildCareForm();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+function switchModal(type) { openModal(type); }
+
+// ── PASSWORD STRENGTH ──────────────────────────────────
+function checkStrength(pw) {
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  return s;
+}
+function updateStrength() {
+  const pw = document.getElementById('reg-password')?.value || '';
+  const score = checkStrength(pw);
+  const cls = ['','weak','fair','good','strong'];
+  const lbl = ['','Weak','Fair','Good','Strong'];
+  document.querySelectorAll('.strength-seg').forEach((s,i) => {
+    s.className = 'strength-seg ' + (i < score ? cls[score] : '');
+  });
+  const el = document.getElementById('strength-label');
+  if (el) el.textContent = pw.length ? lbl[score] : '';
+}
+
+// ── FORMS ─────────────────────────────────────────────
+function buildLoginForm() {
+  return `
+    <h2 class="modal-title">Welcome back</h2>
+    <p class="modal-sub">Sign in to your Brightside account</p>
+    <button class="btn-google" onclick="handleGoogleSignIn()">
+      <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <div class="divider-row"><div class="divider-line"></div><span class="divider-text">or</span><div class="divider-line"></div></div>
+    <div class="form-group">
+      <label class="form-label">Email address</label>
+      <input class="form-input" type="email" id="login-email" placeholder="you@example.com" autocomplete="email"/>
+      <div class="error-msg" id="err-login-email"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()"/>
+      <div class="error-msg" id="err-login-pw"></div>
+    </div>
+    <button class="btn-submit" id="login-btn" onclick="handleLogin()">Sign In</button>
+    <div class="modal-switch">Don't have an account? <a onclick="switchModal('register')">Create one →</a></div>
+  `;
+}
+
+function buildRegisterForm() {
+  return `
+    <h2 class="modal-title">Create your account</h2>
+    <p class="modal-sub">Start your free assessment today</p>
+    <button class="btn-google" onclick="handleGoogleSignIn()">
+      <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Sign up with Google
+    </button>
+    <div class="divider-row"><div class="divider-line"></div><span class="divider-text">or</span><div class="divider-line"></div></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">First name</label>
+        <input class="form-input" type="text" id="reg-first" placeholder="Alex"/>
+        <div class="error-msg" id="err-reg-first"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Last name</label>
+        <input class="form-input" type="text" id="reg-last" placeholder="Jordan"/>
+        <div class="error-msg" id="err-reg-last"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email address</label>
+      <input class="form-input" type="email" id="reg-email" placeholder="you@example.com" autocomplete="email"/>
+      <div class="error-msg" id="err-reg-email"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password" oninput="updateStrength()"/>
+      <div class="strength-bar"><div class="strength-seg"></div><div class="strength-seg"></div><div class="strength-seg"></div><div class="strength-seg"></div></div>
+      <div class="strength-label" id="strength-label"></div>
+      <div class="error-msg" id="err-reg-pw"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">What brings you here?</label>
+      <select class="form-input" id="reg-care" style="cursor:pointer;">
+        <option value="">Select a goal (optional)</option>
+        <option>Manage anxiety</option>
+        <option>Treat depression</option>
+        <option>Get therapy</option>
+        <option>Talk to a psychiatrist</option>
+        <option>Improve my sleep</option>
+        <option>Manage OCD</option>
+        <option>Address stress & burnout</option>
+      </select>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="reg-terms"/>
+      <label for="reg-terms">I agree to Brightside's <a href="#" style="color:var(--teal-mid);">Terms of Service</a> and <a href="#" style="color:var(--teal-mid);">Privacy Policy</a></label>
+    </div>
+    <div class="error-msg" id="err-reg-terms"></div>
+    <button class="btn-submit" id="reg-btn" onclick="handleRegister()" style="margin-top:1rem;">Create Account</button>
+    <div class="modal-switch">Already have an account? <a onclick="switchModal('login')">Sign in →</a></div>
+  `;
+}
+
+function buildCareForm() {
+  return `
+    <h2 class="modal-title">Update care goal</h2>
+    <p class="modal-sub">Let us know how we can best support you</p>
+    <div class="form-group" style="margin-bottom:1.5rem;">
+      <label class="form-label">What would you like to focus on?</label>
+      <select class="form-input" id="care-goal-select" style="cursor:pointer;">
+        <option value="">Select a goal</option>
+        <option>Manage anxiety</option>
+        <option>Treat depression</option>
+        <option>Get therapy</option>
+        <option>Talk to a psychiatrist</option>
+        <option>Improve my sleep</option>
+        <option>Manage OCD</option>
+        <option>Address stress & burnout</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="handleCareUpdate()">Save</button>
+  `;
+}
+
+// ── FIREBASE AUTH ACTIONS ─────────────────────────────
+async function handleLogin() {
+  const email = document.getElementById('login-email')?.value.trim();
+  const pw = document.getElementById('login-password')?.value;
+  document.getElementById('err-login-email').textContent = '';
+  document.getElementById('err-login-pw').textContent = '';
+  if (!email) { document.getElementById('err-login-email').textContent = 'Email is required.'; return; }
+  if (!pw) { document.getElementById('err-login-pw').textContent = 'Password is required.'; return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Signing in…';
+
+  try {
+    const { auth, signInWithEmailAndPassword } = window._fb;
+    await signInWithEmailAndPassword(auth, email, pw);
+    closeModal();
+    showToast('Welcome back! 👋', 'success');
+  } catch(e) {
+    btn.disabled = false; btn.innerHTML = 'Sign In';
+    const msg = e.code === 'auth/invalid-credential' ? 'Incorrect email or password.' : e.message;
+    document.getElementById('err-login-pw').textContent = msg;
+  }
+}
+
+async function handleRegister() {
+  const first = document.getElementById('reg-first')?.value.trim();
+  const last = document.getElementById('reg-last')?.value.trim();
+  const email = document.getElementById('reg-email')?.value.trim();
+  const pw = document.getElementById('reg-password')?.value;
+  const care = document.getElementById('reg-care')?.value;
+  const terms = document.getElementById('reg-terms')?.checked;
+  let valid = true;
+
+  ['err-reg-first','err-reg-last','err-reg-email','err-reg-pw','err-reg-terms'].forEach(id => {
+    document.getElementById(id).textContent = '';
+  });
+
+  if (!first) { document.getElementById('err-reg-first').textContent = 'Required.'; valid = false; }
+  if (!last) { document.getElementById('err-reg-last').textContent = 'Required.'; valid = false; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('err-reg-email').textContent = 'Valid email required.'; valid = false; }
+  if (!pw || pw.length < 8) { document.getElementById('err-reg-pw').textContent = 'Minimum 8 characters.'; valid = false; }
+  if (!terms) { document.getElementById('err-reg-terms').textContent = 'Please accept the terms.'; valid = false; }
+  if (!valid) return;
+
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Creating account…';
+
+  try {
+    const { auth, db, createUserWithEmailAndPassword, updateProfile, doc, setDoc, serverTimestamp } = window._fb;
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    await updateProfile(cred.user, { displayName: first + ' ' + last });
+    const joinedLabel = new Date().toLocaleDateString('en-US', { month:'long', year:'numeric' });
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      name: first + ' ' + last,
+      email: email,
+      care: care || '',
+      joinedLabel,
+      createdAt: serverTimestamp()
+    });
+    closeModal();
+    showToast('Welcome to Brightside, ' + first + '! 🎉', 'success');
+  } catch(e) {
+    btn.disabled = false; btn.innerHTML = 'Create Account';
+    const msg = e.code === 'auth/email-already-in-use' ? 'An account with this email already exists.' : e.message;
+    document.getElementById('err-reg-email').textContent = msg;
+  }
+}
+
+async function handleGoogleSignIn() {
+  try {
+    const { auth, db, signInWithPopup, googleProvider, doc, setDoc, getDoc, serverTimestamp } = window._fb;
+    const result = await signInWithPopup(auth, new window._fb.GoogleAuthProvider());
+    const user = result.user;
+    const userRef = doc(db, 'users', user.uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      await setDoc(userRef, {
+        name: user.displayName || 'Member',
+        email: user.email,
+        care: '',
+        joinedLabel: new Date().toLocaleDateString('en-US', { month:'long', year:'numeric' }),
+        createdAt: serverTimestamp()
+      });
+    }
+    closeModal();
+    showToast('Signed in with Google! 👋', 'success');
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') showToast('Google sign-in failed: ' + e.message, 'error');
+  }
+}
+
+async function handleCareUpdate() {
+  const goal = document.getElementById('care-goal-select')?.value;
+  if (!goal) { showToast('Please select a goal.', 'error'); return; }
+  try {
+    const { auth, db, doc, updateDoc } = window._fb;
+    const user = auth.currentUser;
+    if (!user) return;
+    await updateDoc(doc(db, 'users', user.uid), { care: goal });
+    document.getElementById('dash-care-goal').textContent = 'Goal: ' + goal;
+    closeModal();
+    showToast('Care goal updated!', 'success');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function handleLogout() {
+  const { auth, signOut } = window._fb;
+  await signOut(auth);
+  showToast('You\'ve been signed out.');
+}
+
+// ── RENDER ────────────────────────────────────────────
+function getInitials(name) {
+  return (name || 'M').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+}
+
+function renderLoggedIn(user) {
+  document.getElementById('public-site').style.display = 'none';
+  document.getElementById('dashboard-section').style.display = 'block';
+  document.getElementById('dash-welcome').textContent = 'Hello, ' + (user.name.split(' ')[0]) + ' 👋';
+  document.getElementById('profile-avatar').textContent = getInitials(user.name);
+  document.getElementById('profile-name').textContent = user.name;
+  document.getElementById('profile-email').textContent = user.email;
+  document.getElementById('profile-joined').textContent = 'Member since ' + user.joined;
+  document.getElementById('dash-care-goal').textContent = user.care ? 'Goal: ' + user.care : 'No care goal selected yet. Click "Update goal" to get started.';
+
+  document.getElementById('nav-auth-area').innerHTML = `
+    <a href="#">Refer a Patient</a>
+    <div class="nav-user" onclick="toggleDropdown()">
+      <div class="user-avatar">${getInitials(user.name)}</div>
+      <span class="user-name">${user.name.split(' ')[0]}</span>
+      <span style="font-size:.75rem;color:var(--text-muted);">▾</span>
+      <div class="user-dropdown" id="user-dropdown">
+        <div style="padding:.6rem 1rem .2rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;">Account</div>
+        <div class="dropdown-item" style="cursor:default;font-size:.82rem;">${user.email}</div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" onclick="openModal('care-update')">Update care goal</a>
+        <a class="dropdown-item" href="#">My appointments</a>
+        <a class="dropdown-item" href="#">Account settings</a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item danger" onclick="handleLogout()">Sign out</a>
+      </div>
+    </div>
+  `;
+}
+
+function renderLoggedOut() {
+  document.getElementById('public-site').style.display = 'block';
+  document.getElementById('dashboard-section').style.display = 'none';
+  document.getElementById('nav-auth-area').innerHTML = `
+    <a href="#">Refer a Patient</a>
+    <button class="btn-outline" onclick="openModal('login')">Member Login</button>
+    <button class="btn-cta" onclick="openModal('register')">Free Assessment</button>
+  `;
+}
+
+function toggleDropdown() {
+  document.getElementById('user-dropdown')?.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.nav-user')) document.getElementById('user-dropdown')?.classList.remove('open');
+});
+
+function handleGoButton() {
+  const val = document.getElementById('care-select')?.value;
+  if (!val) { showToast('Please select a care area first.'); return; }
+  openModal('register');
+}
+</script>
+</body>
+</html>
