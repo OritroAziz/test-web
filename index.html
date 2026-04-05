@@ -510,16 +510,7 @@
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-   apiKey: "AIzaSyAHfC22LtBnqEMvwefZCvTljGn0aGyOtks",
-  authDomain: "test-c6f3a.firebaseapp.com",
-  projectId: "test-c6f3a",
-  storageBucket: "test-c6f3a.firebasestorage.app",
-  messagingSenderId: "617623383300",
-  appId: "1:617623383300:web:4fd1f5ea447bc7604f7c51",
-  measurementId: "G-PF9RXBYW02"
-};
-
+  npm install firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
